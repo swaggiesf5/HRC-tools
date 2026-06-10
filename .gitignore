@@ -3,3 +3,5 @@ processed/
 __pycache__/
 *.hrcz
 settings.json
+PROGRESS.md
+REFLECTION.md
