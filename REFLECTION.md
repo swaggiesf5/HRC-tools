@@ -1,14 +1,16 @@
-# Project Reflection: Automating HRC Simulations
+# Project Reflection: HRC Automation & Workflow
 
-### The Journey Since June 1st
-Since beginning this project on June 1st, my primary goal has been to move away from the manual, time-consuming process of setting up poker simulations. The first phase involved a deep dive into the **HoldemResources Calculator (HRC) trial version** to map out its UI behavior and identify the most efficient paths for automation.
+### 1. What I Did (Actions Taken)
+Since June 1st, I have transitioned the HRC simulation process from a manual task to a structured automation pipeline. My key actions included:
+*   **Reverse Engineering HRC Files**: I identified that `.hrcz` files are zip-compressed JSON objects. This discovery allowed me to bypass the HRC interface for hand creation.
+*   **Python Development**: I wrote `src/hrc_generator.py` to programmatically generate these hand configurations, supporting custom stack sizes, blinds, and payout structures.
+*   **UI Automation**: I developed an AutoHotkey (AHK) script to handle the file-loading sequence, aiming to reduce human interaction across 19 Virtual Machines.
+*   **Environment Standardization**: I set up a version-controlled repository with specific commit conventions (`feat`, `docs`, `fix`) to ensure the team can track progress clearly.
 
-To address the scalability issue, I developed a dual-layer approach:
-1.  **Data Generation**: A Python-based generator that handles the complex logic of creating valid HRC hand configurations.
-2.  **UI Orchestration**: An AutoHotkey script designed to simulate the manual clicks and keystroes required to load these files.
+### 2. What I Learned (Technical & Process Insights)
+*   **UI Automation Fragility**: I learned that while AHK is powerful, automating complex software like HRC requires handling many edge cases (popups, focus issues). This has shifted my focus toward making the automation more robust and "aware" of the application state.
+*   **The Power of Programmatic Generation**: I learned that generating data outside of a proprietary UI is significantly faster and more reliable than trying to click through menus to set up scenarios.
+*   **Documentation as a Deliverable**: I’ve realized that documentation isn't just an "extra" task—it is a core part of the engineering job. Proper documentation ensures that the work I do on these 19 VMs is transparent, reproducible, and professional.
 
-### Current Status and Technical Hurdles
-The project is currently a **work in progress**. While the data generation layer is robust, the automation layer faces significant challenges. The HRC client features a dense interface with numerous menus, sub-menus, and conditional popups. This complexity has made it difficult to achieve the "perfect" automation required for a hands-off, 19-VM simulation fleet.
-
-### Looking Ahead
-My focus remains on refining the interaction logic. The challenge isn't just making it work once, but making it work reliably across multiple instances. Overcoming these UI navigation hurdles is the final bridge to realizing a fully automated, high-volume simulation environment.
+### 3. Current Status & Next Steps
+The automation logic is currently being refined to handle the HRC menu complexity more reliably. My goal is to finish the "perfect" loop for the AHK script so the fleet of 19 VMs can run autonomously without further delays.
