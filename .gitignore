@@ -1,0 +1,5 @@
+output_hands/
+processed/
+__pycache__/
+*.hrcz
+settings.json
