@@ -17,7 +17,7 @@ def generate_hand_config(title, stacks, blinds, structure_data, num_other_player
     """
     Generates a standard JSON hand config file for HRC.
     """
-    total_chips_in_play = structure_data["chips"]
+    total_chips_in_play = int(structure_data["chips"])
     chips_at_table = sum(stacks)
     
     # We distribute the remaining chips into 'otherstacks' so the math engine works
@@ -25,9 +25,14 @@ def generate_hand_config(title, stacks, blinds, structure_data, num_other_player
     
     otherstacks = []
     if remaining_chips > 0 and num_other_players > 0:
-        base_stack = remaining_chips / num_other_players
+        base_stack = int(remaining_chips // num_other_players)
         # Just create an array of average stacks for simplicity
         otherstacks = [base_stack for _ in range(num_other_players)]
+        
+        # Add the remainder to the first stack so the total is exactly correct
+        remainder = remaining_chips % num_other_players
+        if remainder > 0 and len(otherstacks) > 0:
+            otherstacks[0] += remainder
 
     config = {
         "handdata": {
