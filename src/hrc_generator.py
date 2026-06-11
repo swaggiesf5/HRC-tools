@@ -3,20 +3,30 @@ import zipfile
 import os
 import random
 import argparse
-from datetime import datetime, timezone
 
 def load_team_payouts(file_path):
-    """Loads payout structures from the team's JSON format."""
     with open(file_path, 'r') as f:
         data = json.load(f)
-    # The team format has a 'prizes' dict inside 'structures'
-    prizes = data['structures'][0]['prizes']
-    return prizes
+    return data['structures'][0]['prizes']
 
 def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
     """
-    Generates settings.json matching the Hand 1.hrcz sample.
+    Generates settings.json matching the Hand 1.hrcz sample exactly.
     """
+    # The crucial missing piece for mtticm: 'otherstacks'. 
+    # Without this, the ICM math engine throws IllegalArgumentException.
+    # We provide a generic distribution of other stacks to make the math work.
+    default_otherstacks = [
+        70552.43, 62334.05, 57768.11, 54632.66, 52258.60, 50355.69, 48772.21, 47419.07,
+        46239.60, 45195.58, 44260.04, 43413.26, 42640.39, 41929.97, 41273.01, 40662.28,
+        40091.93, 39557.12, 39053.85, 38578.72, 38128.86, 37701.82, 37295.46, 36907.95,
+        36537.68, 36183.23, 35843.35, 35516.93, 35202.99, 34900.64, 34609.08, 34327.59,
+        34055.53, 33792.30, 33537.38, 33290.26, 33050.51, 32817.71, 32591.48, 32371.47,
+        32157.37, 31948.87, 31745.70, 31547.60, 31354.33, 31165.68, 30981.42, 30801.38,
+        30625.36, 30453.19, 30284.72, 30119.80, 29958.28, 29800.03, 29644.93, 29492.85,
+        29343.68, 29197.33, 29053.68, 28912.64, 28774.12, 28638.04, 28504.31, 28372.86
+    ]
+
     config = {
         "handdata": {
             "stacks": [int(s) for s in stacks],
@@ -27,10 +37,11 @@ def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
             "straddleType": "OFF"
         },
         "eqmodel": {
+            "otherstacks": default_otherstacks,
             "id": "mtticm",
             "structure": {
                 "name": title,
-                "chips": sum(stacks) * 10, # Arbitrary large number or sum
+                "chips": sum(stacks) + sum(default_otherstacks),
                 "prizes": prizes
             }
         },
@@ -39,7 +50,7 @@ def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
         },
         "engine": {
             "type": "montecarlo",
-            "maxactive": 4, # As seen in sample
+            "maxactive": 4,
             "configuration": {
                 "abstractions": [
                     {"street": 0, "buckets": 169},
@@ -53,28 +64,27 @@ def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
     
     if script_content:
         config["treeconfig"]["script"] = script_content
+    else:
+        # Fallback script to ensure it doesn't crash if set to scripted mode
+        config["treeconfig"]["mode"] = "scripted"
+        config["treeconfig"]["script"] = "function getSizingsOpening(ctx) { return []; }"
         
     return config
 
 def package_hrcz(config, output_path):
-    """
-    Writes the config to settings.json and zips it into an .hrcz file.
-    """
     temp_json = "settings.json"
     with open(temp_json, "w") as f:
         json.dump(config, f, indent=2)
-    
     with zipfile.ZipFile(output_path, "w") as z:
         z.write(temp_json)
-    
     os.remove(temp_json)
 
 def main():
-    parser = argparse.ArgumentParser(description="HRC Hand Generator (Exact Sample Match)")
-    parser.add_argument("--count", type=int, default=1, help="Number of hands to generate")
-    parser.add_argument("--outdir", type=str, default="output_hands", help="Output directory")
-    parser.add_argument("--script", type=str, help="Path to the team JS script")
-    parser.add_argument("--payouts", type=str, help="Path to the team payout JSON")
+    parser = argparse.ArgumentParser(description="HRC Hand Generator")
+    parser.add_argument("--count", type=int, default=1)
+    parser.add_argument("--outdir", type=str, default="output_hands")
+    parser.add_argument("--script", type=str)
+    parser.add_argument("--payouts", type=str)
     args = parser.parse_args()
 
     if not os.path.exists(args.outdir):
@@ -85,29 +95,23 @@ def main():
         with open(args.script, 'r') as f:
             script_content = f.read()
 
-    # Default prizes as seen in sample (mapping rank string to float)
     prizes = {
         "1": 1420.0, "2": 940.0, "3": 675.0, "4": 485.0, "5": 360.0
     }
     if args.payouts and os.path.exists(args.payouts):
         prizes = load_team_payouts(args.payouts)
 
-    blind_levels = [
-        (30000, 60000, 7500), (40000, 80000, 10000), (50000, 100000, 12500)
-    ]
+    blind_levels = [(30000, 60000, 7500)]
 
     for i in range(args.count):
         num_players = 8 
         sb, bb, ante = random.choice(blind_levels)
-        
-        # High stakes as seen in sample
         stacks = [random.randint(500000, 5000000) for _ in range(num_players)]
-        
         blinds = {"sb": sb, "bb": bb, "ante": ante}
-        config = generate_hand_config(f"Hand {i+1}", stacks, blinds, prizes, script_content=script_content)
         
-        filename = f"hand_{i+1}.hrcz"
-        output_path = os.path.join(args.outdir, filename)
+        config = generate_hand_config(f"Hand {i+1}", stacks, blinds, prizes, script_content)
+        
+        output_path = os.path.join(args.outdir, f"hand_{i+1}.hrcz")
         package_hrcz(config, output_path)
         print(f"Generated {output_path}")
 
