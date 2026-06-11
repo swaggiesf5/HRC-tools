@@ -4,9 +4,10 @@
 #NoEnv
 SetWorkingDir %A_ScriptDir%
 SendMode Input
+SetTitleMatchMode, 2 ; Allows partial matching of window titles
 
 ; Configuration
-HRC_TITLE := "HoldemResources Calculator" ; Verify this matches the actual window title
+HRC_TITLE := "HRC" ; Matches "HRC" or "HRC Pro"
 INPUT_DIR := A_ScriptDir . "\output_hands"
 LOOP_DELAY := 5000 ; Check for files every 5 seconds
 
