@@ -11,8 +11,6 @@ HRC_TITLE := "HRC" ; Matches "HRC" or "HRC Pro"
 INPUT_DIR := A_ScriptDir . "\output_hands"
 LOOP_DELAY := 5000 ; Check for files every 5 seconds
 
-MsgBox, AHK Script Started! Watching directory:`n%INPUT_DIR%
-
 Loop {
     FileCount := 0
     ; Find the first .json file in the input directory
@@ -21,15 +19,12 @@ Loop {
         FileCount++
         TargetFile := A_LoopFileFullPath
 
-        MsgBox, Found file: %TargetFile%`nLooking for window: %HRC_TITLE%
-
         if WinExist(HRC_TITLE) {
-            MsgBox, HRC Window Found! Attempting to activate...
             WinActivate, %HRC_TITLE%
             WinWaitActive, %HRC_TITLE%, , 5
 
             if ErrorLevel {
-                MsgBox, Could not activate HRC window. Is it minimized or behind another window?
+                ; Could not activate HRC window.
                 continue
             }
 
@@ -52,17 +47,11 @@ Loop {
                 FileCreateDir, %PROCESSED_DIR%
 
             FileMove, %TargetFile%, %PROCESSED_DIR%
-            MsgBox, File processed and moved.
 
             Sleep, 5000 
         } else {
-            MsgBox, ERROR: Could not find a window named "%HRC_TITLE%". Please check the exact name of the window.
+            ; Window not found, silently wait
         }
-    }
-
-    if (FileCount == 0) {
-        ; Optional: Uncomment to see if it's checking empty folders
-        ; MsgBox, No JSON files found in %INPUT_DIR%. Waiting...
     }
 
     Sleep, %LOOP_DELAY%
