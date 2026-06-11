@@ -41,12 +41,9 @@ def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
             "id": "mtticm",
             "structure": {
                 "name": title,
-                "chips": sum(stacks) + sum(default_otherstacks),
+                "chips": int(sum(stacks) + sum(default_otherstacks)),
                 "prizes": prizes
             }
-        },
-        "treeconfig": {
-            "mode": "scripted" if script_content else "ui"
         },
         "engine": {
             "type": "montecarlo",
@@ -63,11 +60,50 @@ def generate_hand_config(title, stacks, blinds, prizes, script_content=None):
     }
     
     if script_content:
-        config["treeconfig"]["script"] = script_content
+        config["treeconfig"] = {
+            "mode": "scripted",
+            "script": script_content
+        }
     else:
-        # Fallback script to ensure it doesn't crash if set to scripted mode
-        config["treeconfig"]["mode"] = "scripted"
-        config["treeconfig"]["script"] = "function getSizingsOpening(ctx) { return []; }"
+        # Provide a fully valid UI mode treeconfig to prevent NPE
+        config["treeconfig"] = {
+            "mode": "ui",
+            "preflop": {
+                "id": "preflop.settings.general",
+                "settings": {
+                    "ALLOWED_FLATS_PER_RAISE": [0, 1, 1, 0, 0],
+                    "ALLOW_COLD_CALLS": True,
+                    "ALLOW_FLATS_CLOSING_ACTION": True,
+                    "ALLOW_SB_COMPLETE": False,
+                    "PREFLOP_ADD_ALLIN_SPR": 7.0,
+                    "PREFLOP_ALLIN_THRESHOLD": 40.0,
+                    "SIZES_3BET_BB_VS_OTHER": "3.7x",
+                    "SIZES_3BET_BB_VS_SB": "3.5x",
+                    "SIZES_3BET_IP": "3.3x",
+                    "SIZES_3BET_OOP": "4.2x",
+                    "SIZES_3BET_SB_VS_BB": "4.0x",
+                    "SIZES_3BET_SB_VS_OTHER": "4.0x",
+                    "SIZES_4BET_IP": "2.3x",
+                    "SIZES_4BET_OOP": "2.6x",
+                    "SIZES_5BET_IP": "all-in",
+                    "SIZES_5BET_OOP": "all-in",
+                    "SIZES_OPEN_BB": "2.5bb",
+                    "SIZES_OPEN_BB_VS_SB": "2.5bb",
+                    "SIZES_OPEN_BU": "2.5bb",
+                    "SIZES_OPEN_OTHERS": "2.5bb",
+                    "SIZES_OPEN_SB": "3.0bb"
+                }
+            },
+            "postflop": {
+                "id": "postflop.settings.simple",
+                "settings": {
+                    "POSTFLOP_ADD_ALLIN_SPR": [3.0, 3.0],
+                    "POSTFLOP_ALLOW_DONK": [False, False],
+                    "POSTFLOP_GEO": [[60.0], [60.0]],
+                    "POSTFLOP_MAX_BETS_PER_STREET": [2, 1]
+                }
+            }
+        }
         
     return config
 
