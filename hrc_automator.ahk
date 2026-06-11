@@ -1,5 +1,5 @@
 ; HRC Automator Script
-; This script automates loading .hrcz files into HoldemResources Calculator
+; This script automates loading .json files into HoldemResources Calculator
 
 #NoEnv
 SetWorkingDir %A_ScriptDir%
@@ -11,8 +11,8 @@ INPUT_DIR := A_ScriptDir . "\output_hands"
 LOOP_DELAY := 5000 ; Check for files every 5 seconds
 
 Loop {
-    ; Find the first .hrcz file in the input directory
-    Loop, Files, %INPUT_DIR%\*.hrcz
+    ; Find the first .json file in the input directory
+    Loop, Files, %INPUT_DIR%\*.json
     {
         TargetFile := A_LoopFileFullPath
         
