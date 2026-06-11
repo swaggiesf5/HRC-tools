@@ -13,7 +13,7 @@ def load_team_structure(file_path):
         "prizes": structure.get("prizes", {})
     }
 
-def generate_hand_config(title, stacks, blinds, structure_data):
+def generate_hand_config(title, stacks, blinds, structure_data, num_other_players=50):
     """
     Generates a standard JSON hand config file for HRC.
     """
@@ -23,10 +23,8 @@ def generate_hand_config(title, stacks, blinds, structure_data):
     # We distribute the remaining chips into 'otherstacks' so the math engine works
     remaining_chips = max(0, total_chips_in_play - chips_at_table)
     
-    # Create a generic distribution for otherstacks (e.g. 50 players left)
-    num_other_players = 50
     otherstacks = []
-    if remaining_chips > 0:
+    if remaining_chips > 0 and num_other_players > 0:
         base_stack = remaining_chips / num_other_players
         # Just create an array of average stacks for simplicity
         otherstacks = [base_stack for _ in range(num_other_players)]
@@ -111,13 +109,28 @@ def main():
     parser = argparse.ArgumentParser(description="HRC JSON Hand Config Generator")
     parser.add_argument("--count", type=int, default=1)
     parser.add_argument("--outdir", type=str, default="output_hands")
-    parser.add_argument("--payouts", type=str, help="Path to the team payout JSON")
+    parser.add_argument("--scenario", type=str, choices=["300", "1500", "custom"], default="1500", help="Which payout scenario to use")
+    parser.add_argument("--payouts", type=str, help="Path to the custom payout JSON (used if scenario is custom)")
     args = parser.parse_args()
 
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
-    # Default structure
+    # Base Paths for the specific files
+    downloads_hrc = r"C:\Users\Swaggy\Downloads\HRC"
+    
+    num_other_players = 50
+    
+    if args.scenario == "300":
+        payout_file = os.path.join(downloads_hrc, "mtt_300_players.json")
+        num_other_players = 45 # Approximate remaining players for smaller field
+    elif args.scenario == "1500":
+        payout_file = os.path.join(downloads_hrc, "mtt_1500_payout.json")
+        num_other_players = 200 # Approximate remaining players for large field
+    else:
+        payout_file = args.payouts
+
+    # Default structure fallback
     structure_data = {
         "name": "Default 15M",
         "chips": 15000000.0,
@@ -126,8 +139,11 @@ def main():
         }
     }
     
-    if args.payouts and os.path.exists(args.payouts):
-        structure_data = load_team_structure(args.payouts)
+    if payout_file and os.path.exists(payout_file):
+        structure_data = load_team_structure(payout_file)
+        print(f"Loaded scenario structure: {structure_data['name']}")
+    else:
+        print(f"Warning: Could not find payout file at {payout_file}. Using default.")
 
     blind_levels = [(30000, 60000, 7500)]
 
@@ -137,7 +153,7 @@ def main():
         stacks = [random.randint(500000, 2000000) for _ in range(num_players)]
         blinds = {"sb": sb, "bb": bb, "ante": ante}
         
-        config = generate_hand_config(f"Hand {i+1}", stacks, blinds, structure_data)
+        config = generate_hand_config(f"Hand {i+1} ({args.scenario} Scenario)", stacks, blinds, structure_data, num_other_players)
         
         # Save as plain JSON config
         output_path = os.path.join(args.outdir, f"hand_{i+1}.json")
