@@ -1,85 +1,83 @@
-; HRC Automator Script
-; This script automates loading .json files into HoldemResources Calculator
+; HRC Automator Script (Debug Version - Precision Navigation)
+; Using user-provided Tab/Arrow sequence for Step 5 & 6
 
 #NoEnv
 SetWorkingDir %A_ScriptDir%
 SendMode Input
-SetTitleMatchMode, 2 ; Allows partial matching of window titles
+SetTitleMatchMode, 2
 
 ; Configuration
-HRC_TITLE := "HRC" ; Matches "HRC" or "HRC Pro"
-INPUT_DIR := A_ScriptDir . "\output_hands"
-LOOP_DELAY := 5000 ; Check for files every 5 seconds
+HRC_TITLE := "HRC" 
+INPUT_DIR := "C:\Users\Swaggy\Documents\Deeprun\HRCScript\output_hands"
+JS_FILE := "C:\Users\Swaggy\Documents\Deeprun\HRCScript\Data\low_icm_test.js"
+LOOP_DELAY := 5000 
 
 Loop {
-    FileCount := 0
-    ; Find the first .json file in the input directory
     Loop, Files, %INPUT_DIR%\*.json
     {
-        FileCount++
         TargetFile := A_LoopFileFullPath
 
         if WinExist(HRC_TITLE) {
             WinActivate, %HRC_TITLE%
             WinWaitActive, %HRC_TITLE%, , 5
-
             if ErrorLevel {
-                ; Could not activate HRC window.
+                MsgBox, ERROR: Could not activate HRC window.
                 continue
             }
 
-            ; 1. Open the File Menu sequence
+            MsgBox, STEP 1: Opening File sequence (Alt+F, N, S)
             Send, !f
-            Sleep, 500
+            Sleep, 600
             Send, n
-            Sleep, 500
+            Sleep, 600
             Send, s
             Sleep, 1500 
 
-            ; 2. Input the JSON file path
+            MsgBox, STEP 2: Inputting JSON file path
             SendRaw, %TargetFile%
             Send, {Enter}
-            Sleep, 3000 ; Wait for "Hand Setup / MTT Stacks" page to load
+            Sleep, 3000 
 
-            ; 3. Click 'Next' on MTT Stacks page
-            ; Using Alt+N is the standard Windows shortcut for "Next"
+            MsgBox, STEP 3: Pressing Next on Basic Hand Data (Alt+N)
             Send, !n 
-            Sleep, 2000 ; Wait for "Betting Setup" page to load
+            Sleep, 1500 
 
-            ; 4. Navigate to "Scripting"
-            ; Note: If Alt+S doesn't work, we'll need to use {Tab} presses
-            Send, !s 
-            Sleep, 1000
+            MsgBox, STEP 4: Pressing Next on MTT Stacks (Alt+N)
+            Send, !n 
+            Sleep, 2000 ; Wait for Betting Setup page
+
+            MsgBox, STEP 5: Navigating to Scripting Tab (4 Tabs + 2 Right Arrows)
+            Send, {Tab 4}
+            Sleep, 500
+            Send, {Right 2}
+            Sleep, 800
             
-            ; 5. Click "Load a tree building script"
-            ; Note: If Alt+L doesn't work, we'll need to use {Tab} presses
-            Send, !l 
-            Sleep, 1500 ; Wait for file dialog
-
-            ; 6. Input the JS script path
-            JS_SCRIPT := "C:\Users\Swaggy\Documents\Deeprun\HRCScript\Data\low_icm_test.js"
-            SendRaw, %JS_SCRIPT%
+            MsgBox, STEP 6: Navigating to Folder Icon (1 Tab) and Opening Dialog
+            Send, {Tab 1}
+            Sleep, 500
+            Send, {Enter} ; Press the Folder Button
+            Sleep, 1500 
+            
+            MsgBox, STEP 7: Inputting JS script path
+            SendRaw, %JS_FILE%
             Send, {Enter}
             Sleep, 2000
 
-            ; 7. Finalize and Start Calculation (Usually 'Finish' is Alt+F or Enter)
+            MsgBox, STEP 8: Clicking Finish (Alt+F)
             Send, !f
-            Sleep, 500
+            Sleep, 1000
             Send, {Enter}
 
-            ; 8. Move the file to a 'processed' folder to avoid re-running
+            ; MOVE TO PROCESSED
             PROCESSED_DIR := INPUT_DIR . "\processed"
             if !FileExist(PROCESSED_DIR)
                 FileCreateDir, %PROCESSED_DIR%
-
             FileMove, %TargetFile%, %PROCESSED_DIR%
-
+            
+            MsgBox, HAND PROCESSED SUCCESSFULLY!
             Sleep, 5000 
-        } else {
-            ; Window not found, silently wait
         }
     }
-
     Sleep, %LOOP_DELAY%
 }
 
