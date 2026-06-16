@@ -28,20 +28,46 @@ Loop {
                 continue
             }
 
-            ; Sequence: File -> New Calculation -> From Saved File
+            ; 1. Open the File Menu sequence
             Send, !f
             Sleep, 500
             Send, n
             Sleep, 500
             Send, s
-            Sleep, 1000 
+            Sleep, 1500 
 
+            ; 2. Input the JSON file path
             SendRaw, %TargetFile%
             Send, {Enter}
-            Sleep, 2000 
+            Sleep, 3000 ; Wait for "Hand Setup / MTT Stacks" page to load
 
+            ; 3. Click 'Next' on MTT Stacks page
+            ; Using Alt+N is the standard Windows shortcut for "Next"
+            Send, !n 
+            Sleep, 2000 ; Wait for "Betting Setup" page to load
+
+            ; 4. Navigate to "Scripting"
+            ; Note: If Alt+S doesn't work, we'll need to use {Tab} presses
+            Send, !s 
+            Sleep, 1000
+            
+            ; 5. Click "Load a tree building script"
+            ; Note: If Alt+L doesn't work, we'll need to use {Tab} presses
+            Send, !l 
+            Sleep, 1500 ; Wait for file dialog
+
+            ; 6. Input the JS script path
+            JS_SCRIPT := "C:\Users\Swaggy\Documents\Deeprun\HRCScript\Data\low_icm_test.js"
+            SendRaw, %JS_SCRIPT%
+            Send, {Enter}
+            Sleep, 2000
+
+            ; 7. Finalize and Start Calculation (Usually 'Finish' is Alt+F or Enter)
+            Send, !f
+            Sleep, 500
             Send, {Enter}
 
+            ; 8. Move the file to a 'processed' folder to avoid re-running
             PROCESSED_DIR := INPUT_DIR . "\processed"
             if !FileExist(PROCESSED_DIR)
                 FileCreateDir, %PROCESSED_DIR%
