@@ -17,7 +17,7 @@ def load_team_structure(file_path):
     compressed = compress_prizes(raw_prizes)
     return {
         "name": structure.get("name", "Custom Structure"),
-        "chips": structure.get("chips", 15000000.0),
+        "chips": int(round(float(structure.get("chips", 15000000.0)))),
         "prizes": compressed
     }
 
@@ -42,10 +42,10 @@ def compress_prizes(prizes):
     last_idx = len(sorted_positions) - 1
 
     for idx, (pos_str, value) in enumerate(sorted_positions):
-        fval = float(value)
-        if fval != prev_value or idx == last_idx:
-            compressed[pos_str] = fval
-            prev_value = fval
+        ival = int(round(float(value)))
+        if ival != prev_value or idx == last_idx:
+            compressed[pos_str] = ival
+            prev_value = ival
 
     return compressed
 
@@ -404,14 +404,14 @@ def generate_otherstacks(table_stacks, total_chips, remaining_players, table_siz
     remaining_chips = max(0.0, total_chips - chips_at_table_unscaled)
 
     if remaining_chips == 0:
-        return [0.0] * num_others
+        return [0] * num_others
 
     # Harmonic weights: 1/10, 1/11, 1/12, ... — produces a gradual descending curve
     harmonic_weights = [1.0 / (i + 10.0) for i in range(num_others)]
     total_weight = sum(harmonic_weights)
 
-    # Scale so the weights sum to remaining_chips
-    otherstacks = [(w / total_weight) * remaining_chips for w in harmonic_weights]
+    # Scale so the weights sum to remaining_chips and round to integer whole numbers
+    otherstacks = [int(round((w / total_weight) * remaining_chips)) for w in harmonic_weights]
 
     return otherstacks
 
