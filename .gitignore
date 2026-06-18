@@ -1,9 +1,10 @@
 output_hands/
 processed/
 __pycache__/
+Data/
 *.hrcz
 settings.json
 PROGRESS.md
 REFLECTION.md
 hrc_automation.md
-hrc_automation.md
+GEMINI.md
