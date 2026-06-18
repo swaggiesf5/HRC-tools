@@ -339,15 +339,16 @@ def generate_stacks(table_size, bb, avg_bb_min, avg_bb_max, total_chips, remaini
     """
     Generate stack distributions for a table.
 
-    Each stack is drawn uniformly from [avg_bb_min, avg_bb_max] big blinds
-    and converted to chips. Stacks are adjusted mathematically only if they
-    violate overall chip counts or if it is a final table.
+    Each stack is drawn as an integer Big Blind from [avg_bb_min, avg_bb_max]
+    and converted to chips. Stacks are mathematically adjusted and rounded
+    to integer BBs to ensure they are clean multiples of BB (like the example)
+    and strictly respect tournament limits.
     """
     bb_unscaled = bb / 100.0
     num_others = max(0, remaining_players - table_size)
     
-    # 1. First generate random raw BB stacks uniformly in [avg_bb_min, avg_bb_max]
-    bb_stacks = [random.uniform(avg_bb_min, avg_bb_max) for _ in range(table_size)]
+    # 1. First generate random raw BB stacks as floats representing integer BBs in [avg_bb_min, avg_bb_max]
+    bb_stacks = [float(random.randint(avg_bb_min, avg_bb_max)) for _ in range(table_size)]
     
     # 2. Check if the sum of table stacks + minimum other stacks exceeds total_chips
     min_other_bb = avg_bb_min
@@ -381,8 +382,30 @@ def generate_stacks(table_size, bb, avg_bb_min, avg_bb_max, total_chips, remaini
             else:
                 bb_stacks = [avg_bb_min] * table_size
                 
+    # Round BB stacks to integer BB units to guarantee clean, round stack chip counts
+    bb_stacks = [int(round(s)) for s in bb_stacks]
+    
+    # Ensure they are within range [avg_bb_min, avg_bb_max] (unless mathematically forced by total_bb)
+    if num_others > 0:
+        bb_stacks = [max(avg_bb_min, min(avg_bb_max, s)) for s in bb_stacks]
+        target_max = int(max_table_bb)
+        while sum(bb_stacks) > target_max:
+            candidates = [i for i, s in enumerate(bb_stacks) if s > avg_bb_min]
+            if not candidates:
+                break
+            idx = max(candidates, key=lambda i: bb_stacks[i])
+            bb_stacks[idx] -= 1
+    else:
+        bb_stacks = [max(avg_bb_min, s) for s in bb_stacks]
+        current_sum = sum(bb_stacks)
+        target_sum = int(round(total_bb))
+        diff = target_sum - current_sum
+        if diff != 0:
+            idx = bb_stacks.index(max(bb_stacks))
+            bb_stacks[idx] = max(avg_bb_min, bb_stacks[idx] + diff)
+            
     # Convert BB stacks to final scaled chips (rounded to ints)
-    stacks = [int(round(s * bb)) for s in bb_stacks]
+    stacks = [int(s * bb) for s in bb_stacks]
     return stacks
 
 
