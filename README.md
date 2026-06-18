@@ -21,19 +21,35 @@ By distributing this setup across 19 VMs, we transform a serial, manual process 
 
 ## 🛠️ Architecture Overview
 
-- **`src/hrc_generator.py`**: The "Brain." Generates the mathematical state of the hand (stacks, blinds, ICM payouts) and outputs standard `.json` configuration files that HRC natively understands.
-- **`hrc_automator.ahk`**: The "Hands." Handles window focus, menu navigation, and file loading within the Windows environment. Uses partial title matching to lock onto "HRC" or "HRC Pro".
-- **`output_hands/`**: The hot-folder used for communication between the Python logic and the AHK execution. Processed files are moved to `output_hands/processed/`.
+- **`src/hrc_generator.py`**: The "Brain." Programmatically generates mathematical hand configurations (stacks, blinds, field payouts) using configs from the team documents. Rounds all values to integers and exports standard `.json` files.
+- **`hrc_automator.ahk`**: The "Hands." Automates loading calculations in the HRC Windows desktop client.
+- **`output_hands/`**: Output folder where files are structured as `output_hands/{300p|1500p}/{spot_name}/hand_{N}.json`.
+
+---
 
 ## 🚀 Usage
-1.  **Run the generator:** 
-    ```bash
-    # Generate a single hand with the default structure
-    python src/hrc_generator.py --count 1
-    
-    # Generate multiple hands using a custom tournament payout structure
-    python src/hrc_generator.py --count 10 --payouts "path/to/mtt_1500_payout.json"
-    ```
-2.  **Launch HRC** on the VM (ensure it is visible).
-3.  **Run `hrc_automator.ahk`** (it runs silently in the background).
-4.  Watch the simulations stack up as the script automatically clicks through the menus and loads the JSON files.
+
+### 1. Run the Hand Generator
+Run the generator using either the `300` or `1500` player configuration scenarios. 
+
+```bash
+# Generate 1 hand for all spots in the 1500 players scenario (default)
+python src/hrc_generator.py --scenario 1500 --count 1
+
+# Generate 3 hands for all spots in the 300 players scenario
+python src/hrc_generator.py --scenario 300 --count 3
+
+# Generate 5 hands only for specific tournament spots (e.g. 75pct, ft_9max)
+python src/hrc_generator.py --scenario 1500 --count 5 --spots 75pct ft_9max
+```
+
+**Parameters:**
+- `--scenario`: `"300"` or `"1500"` (selects the respective team tournament configuration).
+- `--count`: Number of hands to randomly generate per spot (default: `1`).
+- `--spots`: Space-separated list of spots to generate (e.g., `--spots 75pct stone_bubble ft_9max`). Generates all spots if omitted.
+- `--outdir`: Root output directory (default: `"output_hands"`).
+
+### 2. Run the HRC Automator
+1.  Launch **HoldemResources Calculator** (ensure the window is visible).
+2.  Run `hrc_automator.ahk` (double-click to run in the background).
+3.  Load the generated hand configs via HRC's **File -> New Calculation -> From Saved File** menu. The setup, including blinds, clean integer BB stack counts, prize distributions, and scripting settings, will load automatically.

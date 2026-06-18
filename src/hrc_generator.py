@@ -504,11 +504,11 @@ def build_hand_config(spot, structure_data, script_dir):
                 "abstractions": [
                     {"street": 0, "buckets": 169},
                     {"street": 1, "buckets": 1024,
-                     "id": "22804b04d3732210b3f28dbaee3a59fbe7ab7a573b679ee68c876760aba76b94"},
+                    "id": "22804b04d3732210b3f28dbaee3a59fbe7ab7a573b679ee68c876760aba76b94"},
                     {"street": 2, "buckets": 256,
-                     "id": "661d702e82b930222bdd1e7cea3eef35f9306baaad628cec48713091b7e2e398"},
+                    "id": "661d702e82b930222bdd1e7cea3eef35f9306baaad628cec48713091b7e2e398"},
                     {"street": 3, "buckets": 256,
-                     "id": "41e796828302d1cb95d18663fc2e1eee65f2831c90b26339a814d285003785a1"}
+                    "id": "41e796828302d1cb95d18663fc2e1eee65f2831c90b26339a814d285003785a1"}
                 ]
             }
         }
@@ -550,7 +550,7 @@ def main():
     parser.add_argument(
         "--spots", type=str, nargs="*", default=None,
         help="Generate only specific spots by name (e.g. --spots 75pct ft_9max). "
-             "If omitted, generates all spots."
+            "If omitted, generates all spots."
     )
     args = parser.parse_args()
 
@@ -581,7 +581,7 @@ def main():
         spots = [s for s in spots if s["name"].lower() in requested]
         if not spots:
             print(f"ERROR: No matching spots found. Available: "
-                  f"{', '.join(s['name'] for s in (SPOTS_300 if args.scenario == '300' else SPOTS_1500))}")
+                f"{', '.join(s['name'] for s in (SPOTS_300 if args.scenario == '300' else SPOTS_1500))}")
             return
 
     # Generate hands
