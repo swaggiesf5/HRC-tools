@@ -494,7 +494,8 @@ def build_hand_config(spot, structure_data, script_dir):
             }
         },
         "treeconfig": {
-            "mode": "scripted"
+            "mode": "scripted",
+            "scriptfile": script_path
         },
         "engine": {
             "type": "montecarlo",
