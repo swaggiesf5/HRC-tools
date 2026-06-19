@@ -1,7 +1,6 @@
 output_hands/
 processed/
-__pycache__/
-Data/
+node_modules/
 *.hrcz
 settings.json
 PROGRESS.md

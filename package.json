@@ -1,0 +1,12 @@
+{
+  "name": "hrc-tools",
+  "version": "1.0.0",
+  "description": "Distributed HRC simulation orchestrator — programmatic hand config generation for HoldemResources Calculator",
+  "main": "src/hrc_generator.js",
+  "scripts": {
+    "generate": "node src/hrc_generator.js"
+  },
+  "keywords": ["poker", "hrc", "icm", "mtt", "automation"],
+  "license": "UNLICENSED",
+  "private": true
+}

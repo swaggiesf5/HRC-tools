@@ -8,7 +8,7 @@ In high-stakes poker analysis, the bottleneck isn't just the calculation time—
 ### The Solution: "Decoupled Automation"
 This project implements a hybrid automation strategy to scale simulations across **19 Virtual Machines**:
 
-1.  **Logical Layer (Python)**: Instead of using the HRC UI to build hands, we use `src/hrc_generator.py` to programmatically generate JSON hand configuration files. Following advice from HRC Support, we utilize these plain JSON files to auto-populate the setup dialog, allowing us to vary payout structures and randomize stack depths with mathematical precision without manual data entry.
+1.  **Logical Layer (Node.js)**: Instead of using the HRC UI to build hands, we use `src/hrc_generator.js` to programmatically generate JSON hand configuration files. Following advice from HRC Support, we utilize these plain JSON files to auto-populate the setup dialog, allowing us to vary payout structures and randomize stack depths with mathematical precision without manual data entry.
 2.  **Execution Layer (AutoHotkey)**: To bridge the gap between our generated data and the HRC proprietary client, we use `hrc_automator.ahk`. This script acts as a "virtual user," watching for new JSON files and instantly feeding them into the calculation engine using the `File -> New Calculation -> From Saved File` sequence.
 
 ### Strategic Impact
@@ -21,7 +21,7 @@ By distributing this setup across 19 VMs, we transform a serial, manual process 
 
 ## 🛠️ Architecture Overview
 
-- **`src/hrc_generator.py`**: The "Brain." Programmatically generates mathematical hand configurations (stacks, blinds, field payouts) using configs from the team documents. Rounds all values to integers and exports standard `.json` files.
+- **`src/hrc_generator.js`**: The "Brain." Programmatically generates mathematical hand configurations (stacks, blinds, field payouts) using configs from the team documents. Rounds all values to integers and exports standard `.json` files. Zero external dependencies — uses only Node.js built-ins.
 - **`hrc_automator.ahk`**: The "Hands." Automates loading calculations in the HRC Windows desktop client.
 - **`output_hands/`**: Output folder where files are structured as `output_hands/{300p|1500p}/{spot_name}/hand_{N}.json`.
 
@@ -34,13 +34,13 @@ Run the generator using either the `300` or `1500` player configuration scenario
 
 ```bash
 # Generate 1 hand for all spots in the 1500 players scenario (default)
-python src/hrc_generator.py --scenario 1500 --count 1
+npm run generate -- --scenario 1500 --count 1
 
 # Generate 3 hands for all spots in the 300 players scenario
-python src/hrc_generator.py --scenario 300 --count 3
+npm run generate -- --scenario 300 --count 3
 
 # Generate 5 hands only for specific tournament spots (e.g. 75pct, ft_9max)
-python src/hrc_generator.py --scenario 1500 --count 5 --spots 75pct ft_9max
+npm run generate -- --scenario 1500 --count 5 --spots 75pct ft_9max
 ```
 
 **Parameters:**
