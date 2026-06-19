@@ -123,9 +123,6 @@ To resolve specific edge cases (like why some prize structures loaded incorrectl
 - **The last key in `prizes`** determines the bubble cutoff (places paid).
 - **The `scriptfile` key** inside `treeconfig` must point to the bet-sizing script's absolute path for HRC to restore it automatically.
 
-### 3. Python Prototype → JavaScript Migration
-The initial generator was written in Python for rapid prototyping. It was then migrated to JavaScript (Node.js) to align with the team's tooling requirements. The migration was a 1:1 logic port — all mathematical algorithms (stack generation, harmonic distribution, prize compression, integer rounding) are identical. The JavaScript version has **zero external dependencies** and runs on Node.js built-ins only (`fs`, `path`).
-
 ---
 
 ## Prerequisites
