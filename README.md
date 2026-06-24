@@ -11,7 +11,6 @@
 - [Output Format](#output-format)
 - [Tournament Spots](#tournament-spots)
 - [Project Structure](#project-structure)
-- [Unfinished Work](#unfinished-work)
 
 ---
 
@@ -37,7 +36,7 @@ Setting up a single HRC simulation manually involves entering:
 4. Remaining-player stack distributions (for MTT ICM calculations)
 5. Bet-sizing tree configurations
 
-When you need to run **hundreds of these simulations** across different tournament stages — and distribute them across **19 Virtual Machines** — doing this by hand becomes impossibly slow and error-prone.
+When you need to run **hundreds of these simulations** across different tournament stages, doing this by hand becomes impossibly slow and error-prone.
 
 ### The Solution
 We bypassed the manual process entirely by generating the data **outside of HRC**. The script produces `.json` files that match HRC's internal format, so when you import them, everything is pre-filled: stacks, blinds, payouts, ICM model, bet-sizing scripts — all of it. No manual entry required.
@@ -272,24 +271,5 @@ HRCScript/
 │   ├── low_icm_test.js        # Low ICM bet-sizing tree script
 │   └── high_icm_test.js       # High ICM bet-sizing tree script
 ├── output_hands/              # Generated hand configs (gitignored)
-├── hrc_automator.ahk          # AutoHotkey UI automation (⚠️ unfinished)
 └── README.md
 ```
-
----
-
-## Unfinished Work
-
-### AutoHotkey UI Automation (`hrc_automator.ahk`) — ⚠️ In Progress
-
-The AutoHotkey script (`hrc_automator.ahk`) is designed to automate the last-mile interaction with HRC's desktop GUI — clicking through the **File → New Calculation → From Saved File** dialog, selecting the generated `.json` files, and triggering the calculation. The goal is to enable fully unattended batch processing across 19 Virtual Machines.
-
-**Current status:**
-- Basic window detection and menu navigation are implemented.
-- **Not yet reliable**: The script does not consistently handle HRC's popups, focus changes, and the "Remaining Players" input field across all edge cases.
-- **The "Remaining Players" field** still requires manual input in some cases, because HRC's JSON format does not support a `remainingPlayers` key — the value is derived from `len(stacks) + len(otherstacks)`, which our generator already handles correctly, but the MTT setup dialog may still prompt for confirmation.
-
-**What remains:**
-1. Robust popup and dialog detection (handling the "built with a script" warning, focus loss, etc.)
-2. End-to-end testing across the full VM cluster.
-3. Automatic triggering of calculations after file import without manual confirmation.
