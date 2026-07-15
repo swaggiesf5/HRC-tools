@@ -145,16 +145,16 @@ let SIZES_3BET = {
         'default': "3.75x, All-In"
     },
     'SBvsOthers': {
-        15: "2.25x + 0.5bb, All-In",
-		20: "2.5x + 0.5bb, All-In",
-        25: "3.0x + 0.5bb, All-In",
-        30: "3.25x + 0.5bb, All-In",
-        35: "3.5x + 0.5bb, All-In",
-        40: "3.75x + 0.5bb, All-In",
-        60: "4.0x + 1.0bb, All-In",
-        80: "4.0x + 1.0bb, All-In",
-        100: "4.25x + 1.0bb, All-In",
-        'default': "4.5x + 1.0bb, All-In"
+        15: "3.25x + 0.5bb, All-In",
+		20: "3.5x + 0.5bb, All-In",
+        25: "4.0x + 0.5bb, All-In",
+        30: "4.25x + 0.5bb, All-In",
+        35: "4.5x + 0.5bb, All-In",
+        40: "4.75x + 0.5bb, All-In",
+        60: "5.0x + 1.0bb, All-In",
+        80: "5.0x + 1.0bb, All-In",
+        100: "5.25x + 1.0bb, All-In",
+        'default': "5.5x + 1.0bb, All-In"
     },
     'BBvsSB': {
         15: "2.0x, All-In",
@@ -169,16 +169,16 @@ let SIZES_3BET = {
         'default': "3.5x, All-In"
     },
     'BBvsOthers': {
-		15: "2.5x + 0.5bb, All-In",
-		20: "2.75x + 0.5bb, All-In",
-        25: "3.5x + 0.5bb, All-In",
-        30: "3.75x + 0.5bb, All-In",
-        35: "4.0x + 0.5bb, All-In",
-        40: "4.25x + 0.5bb, All-In",
-        60: "4.5x + 1.0bb, All-In",
-        80: "4.5x + 1.0bb, All-In",
-        100: "4.75x + 1.0bb, All-In",
-        'default': "5.0x + 1.0bb, All-In"
+		15: "3.5x + 0.5bb, All-In",
+		20: "3.75x + 0.5bb, All-In",
+        25: "4.5x + 0.5bb, All-In",
+        30: "4.75x + 0.5bb, All-In",
+        35: "5.0x + 0.5bb, All-In",
+        40: "5.25x + 0.5bb, All-In",
+        60: "5.5x + 1.0bb, All-In",
+        80: "5.5x + 1.0bb, All-In",
+        100: "5.75x + 1.0bb, All-In",
+        'default': "6.0x + 1.0bb, All-In"
     }
 };
 

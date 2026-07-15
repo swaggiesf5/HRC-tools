@@ -77,21 +77,20 @@ Each generated hand config contains four sections:
 | Section | Purpose |
 |---|---|
 | `handdata` | Player stacks, blinds (BB/SB/ante), and table settings |
-| `eqmodel` | ICM/ChipEV model selection, other-player stacks, and full payout structure |
+| `eqmodel` | ICM model selection, other-player stacks, and full payout structure |
 | `treeconfig` | Bet-sizing tree mode (`scripted`) and path to the JavaScript tree script |
 | `engine` | Solver engine settings (Monte Carlo with card abstraction buckets) |
 
 The equity model is set to:
 - **`mtticm`** (Multi-Table ICM) for non-final-table MTT spots
 - **`malmuthharvil`** (Malmuth-Harville) for final-table MTT spots
-- **`chipev`** (ChipEV) for ChipEV mode (payout structures and otherstacks are completely omitted)
 
 The bet-sizing tree script is selected based on the spot's ICM pressure:
 - `low_icm_test.js` for early/mid-tournament spots
 - `high_icm_test.js` for spots with higher ICM pressure (near bubble, final tables)
 
 ### 5. File Output
-Generated files are organized by mode and tournament size:
+Generated files are organized by tournament size:
 ```
 output_hands/
 ├── 300p/                      # MTT ICM hands (300 players)
@@ -99,9 +98,6 @@ output_hands/
 │   │   ├── hand_1.json
 │   │   └── hand_2.json
 │   └── ft_3max/
-├── 300p_chipev/               # ChipEV hands (300 players scenario blinds)
-│   ├── 75pct/
-│   └── ...
 └── 1500p/                     # MTT ICM hands (1500 players)
     └── ...
 ```
@@ -138,9 +134,6 @@ To resolve specific edge cases (like why some prize structures loaded incorrectl
 # Generate 1 hand for every spot in the 1500-player scenario (MTT ICM)
 npm run generate -- --scenario 1500 --count 1
 
-# Generate ChipEV hands instead
-npm run generate -- --mode chipev --scenario 1500 --count 1
-
 # Import into HRC:
 # File → New Calculation → From Saved File → select any .json from output_hands/
 ```
@@ -161,8 +154,8 @@ npm run generate -- [options]
 | `--count` | `1` | Number of random hands to generate per spot |
 | `--spots` | all | Space-separated spot names to generate (e.g., `--spots 75pct ft_9max`) |
 | `--outdir` | `output_hands` | Root output directory |
-| `--mode` | `icm` | Calculations mode: `"icm"` (MTT ICM) or `"chipev"` (Chip EV) |
 | `--shape` | `0.6` | Shape parameter ($\sigma$) for LogNormal otherstacks generation (usually `0.5`–`0.75`) |
+| `--verify` | off | Validate each generated hand reconciles so HRC skips the manual MTT "Remaining Players" step |
 | `--help` | — | Show help message |
 
 ### Examples
@@ -171,8 +164,8 @@ npm run generate -- [options]
 # All 19 spots, 1 hand each (1500-player tournament, MTT ICM)
 npm run generate -- --scenario 1500 --count 1
 
-# All 18 spots, 3 hands each (300-player tournament, ChipEV mode)
-npm run generate -- --mode chipev --scenario 300 --count 3
+# All 18 spots, 3 hands each (300-player tournament)
+npm run generate -- --scenario 300 --count 3
 
 # Only specific spots, 5 hands each, using shape 0.65 for otherstacks
 npm run generate -- --scenario 1500 --count 5 --spots 75pct stone_bubble --shape 0.65

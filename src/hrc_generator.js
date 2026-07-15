@@ -376,55 +376,47 @@ function randomNormal() {
  * to integer BBs to ensure they are clean multiples of BB (like the example)
  * and strictly respect tournament limits.
  */
-function generateStacks(tableSize, bb, avgBbMin, avgBbMax, totalChips, remainingPlayers, isChipEV) {
+function generateStacks(tableSize, bb, avgBbMin, avgBbMax, totalChips, remainingPlayers) {
   const bbUnscaled = bb / 100.0;
   const numOthers = Math.max(0, remainingPlayers - tableSize);
 
   // 1. Generate random raw BB stacks as integers in [avgBbMin, avgBbMax]
   let bbStacks = Array.from({ length: tableSize }, () => randInt(avgBbMin, avgBbMax));
 
-  let maxTableBb = 0;
-  let totalBb = 0;
+  // 2. Check if the sum of table stacks + minimum other stacks exceeds totalChips
+  const minOtherBb = avgBbMin;
+  const totalBb = totalChips / bbUnscaled;
+  const minOtherBbTotal = numOthers * minOtherBb;
+  let maxTableBb = totalBb - minOtherBbTotal;
 
-  if (isChipEV) {
-    // For ChipEV, there's no constraint on the sum of stacks. We just keep them as generated.
-    // They are rounded to integer BB units below
-  } else {
-    // 2. Check if the sum of table stacks + minimum other stacks exceeds totalChips
-    const minOtherBb = avgBbMin;
-    totalBb = totalChips / bbUnscaled;
-    const minOtherBbTotal = numOthers * minOtherBb;
-    maxTableBb = totalBb - minOtherBbTotal;
+  if (maxTableBb < tableSize * avgBbMin) {
+    maxTableBb = tableSize * avgBbMin;
+  }
 
-    if (maxTableBb < tableSize * avgBbMin) {
-      maxTableBb = tableSize * avgBbMin;
-    }
+  let sumBbStacks = bbStacks.reduce((a, b) => a + b, 0);
 
-    let sumBbStacks = bbStacks.reduce((a, b) => a + b, 0);
-
-    if (numOthers === 0) {
-      // Final table: stacks must sum to totalBb exactly
-      if (sumBbStacks !== totalBb) {
-        const excessAllowed = totalBb - tableSize * avgBbMin;
-        const excessGenerated = sumBbStacks - tableSize * avgBbMin;
-        if (excessGenerated > 0 && excessAllowed >= 0) {
-          const factor = excessAllowed / excessGenerated;
-          bbStacks = bbStacks.map((s) => avgBbMin + (s - avgBbMin) * factor);
-        } else {
-          bbStacks = Array(tableSize).fill(totalBb / tableSize);
-        }
+  if (numOthers === 0) {
+    // Final table: stacks must sum to totalBb exactly
+    if (sumBbStacks !== totalBb) {
+      const excessAllowed = totalBb - tableSize * avgBbMin;
+      const excessGenerated = sumBbStacks - tableSize * avgBbMin;
+      if (excessGenerated > 0 && excessAllowed >= 0) {
+        const factor = excessAllowed / excessGenerated;
+        bbStacks = bbStacks.map((s) => avgBbMin + (s - avgBbMin) * factor);
+      } else {
+        bbStacks = Array(tableSize).fill(totalBb / tableSize);
       }
-    } else {
-      // Non-final table: scale down only if sum exceeds maxTableBb
-      if (sumBbStacks > maxTableBb) {
-        const excessAllowed = maxTableBb - tableSize * avgBbMin;
-        const excessGenerated = sumBbStacks - tableSize * avgBbMin;
-        if (excessGenerated > 0 && excessAllowed >= 0) {
-          const factor = excessAllowed / excessGenerated;
-          bbStacks = bbStacks.map((s) => avgBbMin + (s - avgBbMin) * factor);
-        } else {
-          bbStacks = Array(tableSize).fill(avgBbMin);
-        }
+    }
+  } else {
+    // Non-final table: scale down only if sum exceeds maxTableBb
+    if (sumBbStacks > maxTableBb) {
+      const excessAllowed = maxTableBb - tableSize * avgBbMin;
+      const excessGenerated = sumBbStacks - tableSize * avgBbMin;
+      if (excessGenerated > 0 && excessAllowed >= 0) {
+        const factor = excessAllowed / excessGenerated;
+        bbStacks = bbStacks.map((s) => avgBbMin + (s - avgBbMin) * factor);
+      } else {
+        bbStacks = Array(tableSize).fill(avgBbMin);
       }
     }
   }
@@ -432,36 +424,34 @@ function generateStacks(tableSize, bb, avgBbMin, avgBbMax, totalChips, remaining
   // Round BB stacks to integer BB units to guarantee clean, round stack chip counts
   bbStacks = bbStacks.map((s) => Math.round(s));
 
-  if (!isChipEV) {
-    // Ensure they are within range [avgBbMin, avgBbMax] (unless mathematically forced by totalBb)
-    if (numOthers > 0) {
-      bbStacks = bbStacks.map((s) => Math.max(avgBbMin, Math.min(avgBbMax, s)));
-      const targetMax = Math.floor(maxTableBb);
-      while (bbStacks.reduce((a, b) => a + b, 0) > targetMax) {
-        const candidates = bbStacks
-          .map((s, i) => (s > avgBbMin ? i : -1))
-          .filter((i) => i !== -1);
-        if (candidates.length === 0) break;
-        // Pick the candidate with the largest stack
-        let maxIdx = candidates[0];
-        for (const c of candidates) {
-          if (bbStacks[c] > bbStacks[maxIdx]) maxIdx = c;
-        }
-        bbStacks[maxIdx] -= 1;
+  // Ensure they are within range [avgBbMin, avgBbMax] (unless mathematically forced by totalBb)
+  if (numOthers > 0) {
+    bbStacks = bbStacks.map((s) => Math.max(avgBbMin, Math.min(avgBbMax, s)));
+    const targetMax = Math.floor(maxTableBb);
+    while (bbStacks.reduce((a, b) => a + b, 0) > targetMax) {
+      const candidates = bbStacks
+        .map((s, i) => (s > avgBbMin ? i : -1))
+        .filter((i) => i !== -1);
+      if (candidates.length === 0) break;
+      // Pick the candidate with the largest stack
+      let maxIdx = candidates[0];
+      for (const c of candidates) {
+        if (bbStacks[c] > bbStacks[maxIdx]) maxIdx = c;
       }
-    } else {
-      bbStacks = bbStacks.map((s) => Math.max(avgBbMin, s));
-      const currentSum = bbStacks.reduce((a, b) => a + b, 0);
-      const targetSum = Math.round(totalBb);
-      const diff = targetSum - currentSum;
-      if (diff !== 0) {
-        // Find the index of the max stack
-        let maxIdx = 0;
-        for (let i = 1; i < bbStacks.length; i++) {
-          if (bbStacks[i] > bbStacks[maxIdx]) maxIdx = i;
-        }
-        bbStacks[maxIdx] = Math.max(avgBbMin, bbStacks[maxIdx] + diff);
+      bbStacks[maxIdx] -= 1;
+    }
+  } else {
+    bbStacks = bbStacks.map((s) => Math.max(avgBbMin, s));
+    const currentSum = bbStacks.reduce((a, b) => a + b, 0);
+    const targetSum = Math.round(totalBb);
+    const diff = targetSum - currentSum;
+    if (diff !== 0) {
+      // Find the index of the max stack
+      let maxIdx = 0;
+      for (let i = 1; i < bbStacks.length; i++) {
+        if (bbStacks[i] > bbStacks[maxIdx]) maxIdx = i;
       }
+      bbStacks[maxIdx] = Math.max(avgBbMin, bbStacks[maxIdx] + diff);
     }
   }
 
@@ -546,30 +536,25 @@ function generateOtherstacks(tableStacks, totalChips, remainingPlayers, tableSiz
 /**
  * Build a single HRC JSON hand config for a given spot.
  */
-function buildHandConfig(spot, structureData, scriptDir, mode, shape) {
+function buildHandConfig(spot, structureData, scriptDir, shape) {
   const totalChips = structureData.chips;
   const { bb } = spot;
-  const isChipEV = mode === "chipev";
 
   // Generate stacks — strictly within the BB range from the config (adjusted for chips limits)
   const stacks = generateStacks(
     spot.tableSize, bb,
     spot.avgBbMin, spot.avgBbMax,
-    totalChips, spot.remaining,
-    isChipEV
+    totalChips, spot.remaining
   );
 
-  let otherstacks = [];
-  if (!isChipEV) {
-    otherstacks = generateOtherstacks(
-      stacks, totalChips,
-      spot.remaining, spot.tableSize,
-      shape
-    );
-  }
+  const otherstacks = generateOtherstacks(
+    stacks, totalChips,
+    spot.remaining, spot.tableSize,
+    shape
+  );
 
   // Equity model
-  const eqId = isChipEV ? "chipev" : (spot.isFinalTable ? "malmuthharvil" : "mtticm");
+  const eqId = spot.isFinalTable ? "malmuthharvil" : "mtticm";
 
   // Tree config — use script mode referencing the correct JS file
   const scriptName = spot.script === "high_icm" ? "high_icm_test.js" : "low_icm_test.js";
@@ -615,14 +600,12 @@ function buildHandConfig(spot, structureData, scriptDir, mode, shape) {
     },
   };
 
-  if (!isChipEV) {
-    config.eqmodel.otherstacks = otherstacks;
-    config.eqmodel.structure = {
-      name: structureData.name,
-      chips: totalChips,
-      prizes: structureData.prizes,
-    };
-  }
+  config.eqmodel.otherstacks = otherstacks;
+  config.eqmodel.structure = {
+    name: structureData.name,
+    chips: totalChips,
+    prizes: structureData.prizes,
+  };
 
   return config;
 }
@@ -645,6 +628,75 @@ function mkdirp(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
+/**
+ * Validate that a generated config will import into HRC without requiring
+ * manual MTT setup.
+ *
+ * Per HRC support: active table stacks are stored in "cents" (x100) while
+ * `otherstacks` are in plain tournament units (x1). HRC derives the total
+ * player count from len(stacks) + len(otherstacks) and reads the field from
+ * `otherstacks` directly — so as long as those are present and the chips
+ * reconcile, the MTT "Remaining Players" step can be skipped with "Next".
+ *
+ * Returns { ok, checks: [{label, ok, detail}] }.
+ */
+function validateConfig(config, spot) {
+  const checks = [];
+  const stacks = config.handdata.stacks;
+  const tableRealChips = stacks.reduce((a, b) => a + b, 0) / 100; // x100 -> real
+
+  if (spot.isFinalTable) {
+    // Final table: the table IS the whole field, no otherstacks.
+    const others = config.eqmodel.otherstacks || [];
+    checks.push({
+      label: "no field at final table",
+      ok: others.length === 0,
+      detail: `${others.length} otherstacks (expected 0)`,
+    });
+    checks.push({
+      label: "players = remaining",
+      ok: stacks.length === spot.remaining,
+      detail: `${stacks.length} players (expected ${spot.remaining})`,
+    });
+  } else {
+    // MTT ICM: otherstacks carry the field; everything must reconcile so HRC
+    // skips manual "Remaining Players" entry.
+    const others = config.eqmodel.otherstacks || [];
+    const chips = config.eqmodel.structure.chips;
+    const othersSum = others.reduce((a, b) => a + b, 0);
+    const totalPlayers = stacks.length + others.length;
+    const totalChips = tableRealChips + othersSum;
+
+    checks.push({
+      label: "players = remaining",
+      ok: totalPlayers === spot.remaining,
+      detail: `${stacks.length} table + ${others.length} field = ${totalPlayers} (expected ${spot.remaining})`,
+    });
+    checks.push({
+      label: "chips reconcile",
+      ok: totalChips === chips,
+      detail: `${tableRealChips.toLocaleString()} + ${othersSum.toLocaleString()} = ${totalChips.toLocaleString()} (expected ${chips.toLocaleString()})`,
+    });
+    checks.push({
+      label: "otherstacks scale (x1, not x100)",
+      ok: others.length === 0 || Math.max(...others) < chips,
+      detail: `max field stack ${others.length ? Math.max(...others).toLocaleString() : 0}`,
+    });
+    checks.push({
+      label: "otherstacks >= 1 chip",
+      ok: others.every((s) => s >= 1),
+      detail: `min field stack ${others.length ? Math.min(...others) : "-"}`,
+    });
+    checks.push({
+      label: "otherstacks sorted descending",
+      ok: others.every((s, i) => i === 0 || others[i - 1] >= s),
+      detail: "largest-to-smallest",
+    });
+  }
+
+  return { ok: checks.every((c) => c.ok), checks };
+}
+
 // ---------------------------------------------------------------------------
 // CLI argument parser (minimal, no dependencies)
 // ---------------------------------------------------------------------------
@@ -656,8 +708,8 @@ function parseArgs() {
     count: 1,
     outdir: "output_hands",
     spots: null,
-    mode: "icm",
     shape: 0.6,
+    verify: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -679,19 +731,15 @@ function parseArgs() {
       case "--outdir":
         args.outdir = argv[++i];
         break;
-      case "--mode":
-        args.mode = argv[++i].toLowerCase();
-        if (args.mode !== "icm" && args.mode !== "chipev") {
-          console.error(`ERROR: --mode must be "icm" or "chipev", got "${args.mode}"`);
-          process.exit(1);
-        }
-        break;
       case "--shape":
         args.shape = parseFloat(argv[++i]);
         if (isNaN(args.shape) || args.shape <= 0) {
           console.error("ERROR: --shape must be a positive float");
           process.exit(1);
         }
+        break;
+      case "--verify":
+        args.verify = true;
         break;
       case "--spots":
         args.spots = [];
@@ -708,15 +756,14 @@ HRC JSON Hand Config Generator
 Usage:
   npm run generate -- --scenario 1500 --count 1
   npm run generate -- --scenario 300 --count 3 --spots 75pct ft_9max
-  npm run generate -- --mode chipev --scenario 1500 --count 1
 
 Options:
   --scenario  "300" or "1500" (default: "1500")
   --count     Number of hands per spot (default: 1)
   --outdir    Root output directory (default: "output_hands")
   --spots     Space-separated list of spots to generate (default: all)
-  --mode      "icm" or "chipev" (default: "icm")
   --shape     LogNormal shape parameter for otherstacks (default: 0.6)
+  --verify    Validate each hand reconciles so HRC skips manual MTT setup
   --help      Show this help message
 `);
         process.exit(0);
@@ -779,22 +826,30 @@ function main() {
 
   // Generate hands
   let totalGenerated = 0;
+  let verifyPassed = 0;
+  const verifyFailures = [];
   for (const spot of spots) {
-    const modeFolder = args.mode === "chipev" ? `${args.scenario}p_chipev` : `${args.scenario}p`;
-    const spotDir = path.join(outdir, modeFolder, spot.name);
+    const spotDir = path.join(outdir, `${args.scenario}p`, spot.name);
     mkdirp(spotDir);
 
     for (let i = 0; i < args.count; i++) {
-      const config = buildHandConfig(spot, structureData, dataDir, args.mode, args.shape);
+      const config = buildHandConfig(spot, structureData, dataDir, args.shape);
       const filename = `hand_${i + 1}.json`;
       const outputPath = path.join(spotDir, filename);
       writeJson(config, outputPath);
       totalGenerated++;
+
+      if (args.verify) {
+        const result = validateConfig(config, spot);
+        if (result.ok) {
+          verifyPassed++;
+        } else {
+          verifyFailures.push({ file: `${spot.name}/${filename}`, checks: result.checks });
+        }
+      }
     }
 
-    const eqLabel = args.mode === "chipev"
-      ? "ChipEV"
-      : (spot.isFinalTable ? "Malmuth-Harville" : "Multi-Table ICM");
+    const eqLabel = spot.isFinalTable ? "Malmuth-Harville" : "Multi-Table ICM";
     console.log(
       `  [${spot.name.padStart(25)}]  ` +
       `${args.count} hand(s)  |  ` +
@@ -806,8 +861,32 @@ function main() {
     );
   }
 
-  const outputSubdir = args.mode === "chipev" ? `${args.scenario}p_chipev` : `${args.scenario}p`;
-  console.log(`\nDone — ${totalGenerated} hand(s) generated in ${outdir}/${outputSubdir}/`);
+  console.log(`\nDone — ${totalGenerated} hand(s) generated in ${outdir}/${args.scenario}p/`);
+
+  if (args.verify) {
+    console.log(
+      `\nVerification — ${verifyPassed}/${totalGenerated} hand(s) ready for HRC ` +
+      `import without manual MTT setup.`
+    );
+    if (verifyFailures.length === 0) {
+      console.log(
+        "  All checks passed: otherstacks present, chips reconcile to the " +
+        "structure total, player count matches Remaining Players."
+      );
+    } else {
+      console.log(`  ${verifyFailures.length} hand(s) FAILED:`);
+      for (const f of verifyFailures.slice(0, 20)) {
+        console.log(`    ✗ ${f.file}`);
+        for (const c of f.checks.filter((c) => !c.ok)) {
+          console.log(`        - ${c.label}: ${c.detail}`);
+        }
+      }
+      if (verifyFailures.length > 20) {
+        console.log(`    ... and ${verifyFailures.length - 20} more`);
+      }
+      process.exitCode = 1;
+    }
+  }
 }
 
 main();
