@@ -63,10 +63,18 @@ while true; do
         activate_hrc || { echo "ERROR: HRC window not found; retrying next pass"; continue; }
         sleep 1
 
-        # STEP 1: File -> New -> From Saved File (Alt+F, N, S)
-        xdotool key --clearmodifiers alt+f; sleep 0.6
-        xdotool key n;                       sleep 0.6
-        xdotool key s;                       sleep 1.5
+        # STEP 1: File -> New Calculation -> Start Hand from Saved File.
+        # Linux HRC menu is navigated by arrows (mnemonics differ from Windows):
+        #   Alt+F opens File, Down x1 -> New Calculation,
+        #   Right x2 -> open its submenu, Down x2 -> Start Hand from Saved File,
+        #   Enter -> opens the GTK file chooser.
+        xdotool key --clearmodifiers alt+f;  sleep 0.8
+        xdotool key Down;                    sleep 0.4
+        xdotool key Right;                   sleep 0.4
+        xdotool key Right;                   sleep 0.4
+        xdotool key Down;                    sleep 0.3
+        xdotool key Down;                    sleep 0.3
+        xdotool key Return;                  sleep 1.5
 
         # STEP 2: type the JSON file path into the GTK file chooser.
         # GTK choosers need Ctrl+L to open the location bar before typing a path.
