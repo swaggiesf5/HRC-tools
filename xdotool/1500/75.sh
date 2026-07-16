@@ -68,7 +68,9 @@ while true; do
         xdotool key n;                       sleep 0.6
         xdotool key s;                       sleep 1.5
 
-        # STEP 2: type the JSON file path
+        # STEP 2: type the JSON file path into the GTK file chooser.
+        # GTK choosers need Ctrl+L to open the location bar before typing a path.
+        xdotool key --clearmodifiers ctrl+l; sleep 0.5
         xdotool type --clearmodifiers -- "$TargetFile"
         xdotool key Return;                  sleep 3
 
@@ -86,7 +88,8 @@ while true; do
         xdotool key Tab;                     sleep 0.5
         xdotool key Return;                  sleep 1.5
 
-        # STEP 7: type the JS script path
+        # STEP 7: type the JS script path (GTK chooser -> Ctrl+L for location bar)
+        xdotool key --clearmodifiers ctrl+l; sleep 0.5
         xdotool type --clearmodifiers -- "$JS_FILE"
         xdotool key Return;                  sleep 2
 
