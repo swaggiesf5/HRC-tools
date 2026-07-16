@@ -13,19 +13,25 @@ set -u
 # --- Configuration (EDIT these for the instance) ---------------------------
 HRC_TITLE="HRC"                                    # main window title (partial match)
 SETUP_TITLE="Hand Setup"                           # progress-dialog title (setup + calc)
-INPUT_DIR="/home/ec2-user/HRCScript/output_hands/1500/75"   # TODO: instance path
-JS_FILE="/home/ec2-user/HRCScript/Data/low_icm_new.js"      # TODO: instance path
+INPUT_DIR="/home/ec2-user/Documents/Hands/output_hands/1500/75"   # instance hands dir
+JS_FILE="/home/ec2-user/Documents/Hands/Data/low_icm_new.js"     # instance betting script
 PROCESSED_DIR="$INPUT_DIR/processed"
 LOOP_DELAY=5                                        # seconds between passes
 
 # --- Helpers ---------------------------------------------------------------
 
-# Activate the HRC main window (first match).
+# Activate the HRC main window. HRC opens several windows all titled "HRC Pro "
+# (identical titles, ids change every restart), so we can't pick by name or id.
+# Instead pick the LARGEST visible match — that is reliably the main window.
 activate_hrc() {
-    local id
-    id=$(xdotool search --name "$HRC_TITLE" 2>/dev/null | head -1)
-    [ -n "$id" ] || return 1
-    xdotool windowactivate --sync "$id" 2>/dev/null
+    local id best_id="" best_area=0 area
+    for id in $(xdotool search --onlyvisible --name "$HRC_TITLE" 2>/dev/null); do
+        eval "$(xdotool getwindowgeometry --shell "$id")"
+        area=$(( WIDTH * HEIGHT ))
+        [ "$area" -gt "$best_area" ] && { best_area=$area; best_id=$id; }
+    done
+    [ -n "$best_id" ] || return 1
+    xdotool windowactivate --sync "$best_id" 2>/dev/null
 }
 
 # Wait until a window whose title matches $1 APPEARS (timeout $2 seconds).

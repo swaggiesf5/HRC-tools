@@ -1,0 +1,4 @@
+# Shell scripts must keep LF line endings so they run on Linux (the instance).
+# Without this, Git on Windows checks them out with CRLF and bash fails with
+# "bad interpreter: /usr/bin/env bash^M".
+*.sh text eol=lf
