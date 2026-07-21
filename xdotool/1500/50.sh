@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# HRC Automator (Linux/xdotool) — 1500 players, 75 spot — low_icm_new.js
+# HRC Automator (Linux/xdotool) — 1500 players, 50 spot — low_icm_new.js
 #
 # AutoHotkey is Windows-only; this is the Linux equivalent using xdotool.
 # Run it inside the graphical session (e.g. Amazon DCV) where the HRC GUI
@@ -12,7 +12,7 @@ set -u
 
 # --- Configuration (EDIT these for the instance) ---------------------------
 HRC_TITLE="HRC"                                    # main window title (partial match)
-INPUT_DIR="/home/ec2-user/Documents/Hands/output_hands/1500/75"   # instance hands dir
+INPUT_DIR="/home/ec2-user/Documents/Hands/output_hands/1500/50"   # instance hands dir
 JS_FILE="/home/ec2-user/Documents/Hands/Data/low_icm_new.js"     # instance betting script
 PROCESSED_DIR="$INPUT_DIR/processed"
 LOG_FILE="$INPUT_DIR/run.log"                       # timestamped progress log
